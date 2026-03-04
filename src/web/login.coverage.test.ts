@@ -35,10 +35,21 @@ vi.mock("./session.js", () => {
   const createWaSocket = vi.fn(async () => (call++ === 0 ? sockA : sockB));
   const waitForWaConnection = vi.fn();
   const formatError = vi.fn((err: unknown) => `formatted:${String(err)}`);
+  const getStatusCode = vi.fn((err: unknown) => {
+    if (!err || typeof err !== "object") {
+      return undefined;
+    }
+    return (
+      (err as { output?: { statusCode?: number } })?.output?.statusCode ??
+      (err as { error?: { output?: { statusCode?: number } } })?.error?.output?.statusCode ??
+      (err as { status?: number })?.status
+    );
+  });
   return {
     createWaSocket,
     waitForWaConnection,
     formatError,
+    getStatusCode,
     WA_WEB_AUTH_DIR: authDir,
     logoutWeb: vi.fn(async (params: { authDir?: string }) => {
       await fs.rm(params.authDir ?? authDir, {
@@ -66,7 +77,7 @@ describe("loginWeb coverage", () => {
 
   it("restarts once when WhatsApp requests code 515", async () => {
     waitForWaConnectionMock
-      .mockRejectedValueOnce({ output: { statusCode: 515 } })
+      .mockRejectedValueOnce({ error: { output: { statusCode: 515 } } })
       .mockResolvedValueOnce(undefined);
 
     const runtime = { log: vi.fn(), error: vi.fn() } as never;

@@ -1,0 +1,13 @@
+{
+  "plugins": {
+    "enabled": true,
+    "slots": {
+      "contextEngine": "lossless-claw"
+    },
+    "entries": {
+      "lossless-claw": {
+        "enabled": true
+      }
+    }
+  }
+}
